@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import getSuggestions from './getSuggestions';
 import ListItem from './ListItem';
+import './SearchBar.css';
 
 // can be optimised
 const findLastSpace = (text) => {
@@ -79,7 +80,8 @@ const SearchBar = () => {
         if(selectedSuggestion > 0) {
           handleSuggestionClick(suggestions[selectedSuggestion - 1]);
         }
-      break;
+        break;
+      default:
     }
   };
 
@@ -93,10 +95,10 @@ const SearchBar = () => {
   }
 
   return (
-    <div>
+    <div className="Search-bar">
       <input
         placeholder="Search..."
-        type="text"
+        type="search"
         value={searchText}
         onChange={handleChange}
         autoComplete="off"
@@ -105,20 +107,19 @@ const SearchBar = () => {
         onKeyDown={handleKeyDown}
         onBlur={handleFocusOut}
         onFocus={handleFocusIn}
+        className="Search-input"
       />
-      <h4>
-        <ul>
-          {open && suggestions.map((value, index) => (
-            <ListItem
-              key={index}
-              value={value}
-              handleItemClick={handleSuggestionClick}
-              isSelected={index + 1 === selectedSuggestion}
-              highlightedText={highlightedText}
-            />
-          ))}
-        </ul>
-      </h4>
+      <ul className='Suggestions'>
+        {open && suggestions.map((value, index) => (
+          <ListItem
+            key={index}
+            value={value}
+            handleItemClick={handleSuggestionClick}
+            isSelected={index + 1 === selectedSuggestion}
+            highlightedText={highlightedText}
+          />
+        ))}
+      </ul>
     </div>
   );
 };

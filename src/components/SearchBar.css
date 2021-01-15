@@ -1,0 +1,30 @@
+.Search-bar {
+  height: 60px;
+  margin: 30px;
+  max-width: 700px;
+  background-color: #FFF;
+  border-radius: 20px 20px 0 0;
+  border-bottom: solid #DDD;
+}
+
+.Search-input {
+  padding: 15px 20px 0 20px;
+  display: inline-block;
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  border: none;
+  height: 60px;
+  font-size: 30px;
+}
+
+.Search-input:focus {
+  outline-width: 0;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding-top: 15px;
+  background-color: #FFFFFF;
+  border-radius: 0 0 20px 20px;
+}

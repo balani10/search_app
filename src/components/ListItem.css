@@ -1,0 +1,28 @@
+
+li {
+  width: 100%;
+  height: 50px;
+  text-align: left;
+  border-radius: 20px;
+}
+
+button.Selected-item {
+  background-color: rgb(226, 226, 255);
+}
+
+button {
+  display: block;
+  width: 100%;
+  border: none;
+  background-color: #FFF;
+  font-size: 25px;
+  padding: 10px;
+  margin-left: -30px;
+  cursor: pointer;
+  text-align: left;
+  color: #777;
+}
+
+mark {
+  background-color: aquamarine;
+}
