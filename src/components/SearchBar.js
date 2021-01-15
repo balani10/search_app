@@ -11,7 +11,17 @@ const findLastSpace = (text) => {
     lastSpace = lastSpace - 1;
   }
   return lastSpace;
-}
+};
+
+const debounce = (func, delay) => {
+  let timeout;
+  return (...params) => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func(...params);
+    }, delay);
+  };
+};
 
 const SearchBar = () => {
   const [searchText, setSearchText] = useState('');
@@ -21,36 +31,39 @@ const SearchBar = () => {
   const searchRef = useRef();
   const [highlightedText, setHighlightedText] = useState('');
 
-  const renderSuggestions = async (input) => {
+  const renderSuggestions = (input) => {
+    console.log(input);
     const text = input.trim();
     const lastSpace = findLastSpace(text);  //can be optimised
     let lastWord = '';
-    if(lastSpace === -1)  //incase no spaces
+    if(lastSpace === -1)  // in case no spaces
       lastWord = text;
     else
       lastWord = text.slice(lastSpace+1, text.length);
     setHighlightedText(lastWord);
-    if(!lastWord.length) {    //if no text in searchbar
+    if(!lastWord.length) {    // if no text in searchbar
       setSuggestions([]);
       return;
     }
-    try {
-      const result = await getSuggestions(lastWord);
-      setSuggestions(result);
-      setSelectedSuggestion(0); 
-    } catch(e) {
-      console.log(e);
-    }
+    getSuggestions(lastWord)
+      .then((result) => {
+        setSuggestions(result);
+        setSelectedSuggestion(0); 
+      })
+      .catch((e) => {
+        console.log('Error detected in search bar: ', e);
+      });
   };
+  const debouncedRenderSuggestions = useRef(debounce((text) => renderSuggestions(text), 500)).current;
 
   const handleChange = (e) => {
     const text = e.target.value;
     setSearchText(text);
-    if(text === '' || text[text.length-1] === ' ') {
+    if(text === '' || text[text.length - 1] === ' ') {
       setSuggestions([]);
       return;
     }
-    renderSuggestions(text);
+    debouncedRenderSuggestions(text);
   };
 
   const handleSuggestionClick = (suggestion) => {
@@ -65,7 +78,7 @@ const SearchBar = () => {
     searchRef.current.focus();
   };
 
-  // call only when arrowUp key. Is it possible?
+  // call only when arrow keys. Is it possible?
   const handleKeyDown = (e) => {
     const suggestionsSize = suggestions.length + 1;
     switch (e.code) {
