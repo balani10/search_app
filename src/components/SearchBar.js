@@ -3,7 +3,7 @@ import getSuggestions from './getSuggestions';
 import ListItem from './ListItem';
 import './SearchBar.css';
 
-// can be optimised
+// function to find last space in a string
 const findLastSpace = (text) => {
   let lastSpace = text.length - 1;
   while(lastSpace >= 0) {
@@ -13,6 +13,7 @@ const findLastSpace = (text) => {
   return lastSpace;
 };
 
+// debounce function
 const debounce = (func, delay) => {
   let timeout;
   return (...params) => {
@@ -24,19 +25,18 @@ const debounce = (func, delay) => {
 };
 
 const SearchBar = () => {
-  const [searchText, setSearchText] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [selectedSuggestion, setSelectedSuggestion] = useState(0);
+  const [searchText, setSearchText] = useState('');   // actual text in input
+  const [suggestions, setSuggestions] = useState([]);   // array of suggestions
+  const [showSuggestions, setShowSuggestions] = useState(false);  // flag to show/hide suggestions
+  const [selectedSuggestion, setSelectedSuggestion] = useState(0);  // on up/down arrow and space keys
+  const [highlightedText, setHighlightedText] = useState('');   // actual word to be searched
   const searchRef = useRef();
-  const [highlightedText, setHighlightedText] = useState('');
 
   const renderSuggestions = (input) => {
-    console.log(input);
     const text = input.trim();
-    const lastSpace = findLastSpace(text);  //can be optimised
+    const lastSpace = findLastSpace(text);
     let lastWord = '';
-    if(lastSpace === -1)  // in case no spaces
+    if(lastSpace === -1)  // in case no spaces (a single word)
       lastWord = text;
     else
       lastWord = text.slice(lastSpace+1, text.length);
@@ -45,7 +45,7 @@ const SearchBar = () => {
       setSuggestions([]);
       return;
     }
-    getSuggestions(lastWord)
+    getSuggestions(lastWord)    // firing the get suggestions query
       .then((result) => {
         setSuggestions(result);
         setSelectedSuggestion(0); 
@@ -60,15 +60,15 @@ const SearchBar = () => {
     const text = e.target.value;
     setSearchText(text);
     if(text === '' || text[text.length - 1] === ' ') {
-      setSuggestions([]);
+      setSuggestions([]);     // if empty string or space found at the end
       return;
     }
     debouncedRenderSuggestions(text);
   };
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = (suggestion) => {   // add suggestion to input
     setSearchText((text) => {
-      const lastSpace = findLastSpace(text);  //can be optimised
+      const lastSpace = findLastSpace(text);
       const modifiedText = (lastSpace === -1)
         ? `${suggestion}`
         : `${text.slice(0, lastSpace)} ${suggestion}`;
@@ -100,11 +100,11 @@ const SearchBar = () => {
 
   // onFocus and onBlur event on input
   const handleFocusIn = () => {
-    setOpen(true);
+    setShowSuggestions(true);
   }
   const handleFocusOut = (e) => {
     if (e.relatedTarget) return;
-    setOpen(false);
+    setShowSuggestions(false);
   }
 
   return (
@@ -123,7 +123,7 @@ const SearchBar = () => {
         className="Search-input"
       />
       <ul className='Suggestions'>
-        {open && suggestions.map((value, index) => (
+        {showSuggestions && suggestions.map((value, index) => (
           <ListItem
             key={index}
             value={value}
