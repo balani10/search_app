@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import getSuggestions from './getSuggestions';
 import ListItem from './ListItem';
 import './SearchBar.css';
+import keys from '../constants/keys';
+import errorTexts from '../constants/errorTexts';
 
 // function to find last space in a string
 const findLastSpace = (text) => {
@@ -30,6 +32,7 @@ const SearchBar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);  // flag to show/hide suggestions
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);  // on up/down arrow and space keys
   const [highlightedText, setHighlightedText] = useState('');   // actual word to be searched
+  const [error, setError] = useState('');
   const searchRef = useRef();
 
   const renderSuggestions = (input) => {
@@ -51,12 +54,13 @@ const SearchBar = () => {
         setSelectedSuggestion(0); 
       })
       .catch((e) => {
-        console.log('Error detected in search bar: ', e);
+        setError(errorTexts.FETCH_ERROR) // done need to change
       });
   };
-  const debouncedRenderSuggestions = useRef(debounce((text) => renderSuggestions(text), 500)).current;
+  const debouncedRenderSuggestions = useCallback(debounce((text) => renderSuggestions(text), 500), []);  // done useCallBack
 
   const handleChange = (e) => {
+    if(error.length) setError('');
     const text = e.target.value;
     setSearchText(text);
     if(text === '' || text[text.length - 1] === ' ') {
@@ -78,20 +82,19 @@ const SearchBar = () => {
     searchRef.current.focus();
   };
 
-  // call only when arrow keys. Is it possible?
   const handleKeyDown = (e) => {
     const suggestionsSize = suggestions.length + 1;
     switch (e.code) {
-      case 'ArrowUp':
+      case keys.ARROW_UP: // use constant
         e.preventDefault();
         setSelectedSuggestion((prev) => (prev - 1 + suggestionsSize) % suggestionsSize);
         break;
-      case 'ArrowDown':
+      case keys.ARROW_DOWN:
         setSelectedSuggestion((prev) => (prev + 1) % suggestionsSize);
         break;
-      case 'Space':
+      case keys.ENTER: // check
         if(selectedSuggestion > 0) {
-          handleSuggestionClick(suggestions[selectedSuggestion - 1]);
+          handleSuggestionClick(suggestions[selectedSuggestion - 1] + ' ');
         }
         break;
       default:
@@ -123,6 +126,7 @@ const SearchBar = () => {
         className="Search-input"
       />
       <ul className='Suggestions'>
+        {error.length && <li className='Suggestion-error'> {error} </li>}
         {showSuggestions && suggestions.map((value, index) => (
           <ListItem
             key={index}
