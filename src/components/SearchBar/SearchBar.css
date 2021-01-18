@@ -1,6 +1,6 @@
 .Search-bar {
   height: 60px;
-  margin: 30px;
+  margin: 30px 30px 0 30px;
   max-width: 700px;
   background-color: #FFF;
   border-radius: 20px 20px 0 0;
@@ -25,12 +25,18 @@
 ul {
   list-style-type: none;
   margin: 0;
-  padding-top: 15px;
+  padding-top: 0px;
+  padding-bottom: 10px;
   background-color: #FFFFFF;
   border-radius: 0 0 20px 20px;
 }
 
 .Suggestion-error {
   color: red;
-  font-size: small;
+  margin-left: -20px;
+  font-size: medium;
+  width: 100%;
+  height: 50px;
+  text-align: left;
+  border-radius: 20px;
 }

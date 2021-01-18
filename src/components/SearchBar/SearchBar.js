@@ -1,30 +1,12 @@
 import React, { useState, useRef, useCallback } from 'react';
-import getSuggestions from './getSuggestions';
-import ListItem from './ListItem';
+import getSuggestions from '../../api/getSuggestions';
+import ListItem from '../ListItem/ListItem';
 import './SearchBar.css';
-import keys from '../constants/keys';
-import errorTexts from '../constants/errorTexts';
-
-// function to find last space in a string
-const findLastSpace = (text) => {
-  let lastSpace = text.length - 1;
-  while(lastSpace >= 0) {
-    if(text[lastSpace] === ' ') break;
-    lastSpace = lastSpace - 1;
-  }
-  return lastSpace;
-};
-
-// debounce function
-const debounce = (func, delay) => {
-  let timeout;
-  return (...params) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      func(...params);
-    }, delay);
-  };
-};
+import keys from '../../constants/keys';
+import errorTexts from '../../constants/errorTexts';
+import regex from '../../constants/regex';
+import debounce from '../../utils/debounce';
+import { findLastSpace } from '../../utils/stringOperations';
 
 const SearchBar = () => {
   const [searchText, setSearchText] = useState('');   // actual text in input
@@ -36,6 +18,9 @@ const SearchBar = () => {
   const searchRef = useRef();
 
   const renderSuggestions = (input) => {
+    if(input[input.length - 1] === ' ') {
+      return;
+    }
     const text = input.trim();
     const lastSpace = findLastSpace(text);
     let lastWord = '';
@@ -51,10 +36,12 @@ const SearchBar = () => {
     getSuggestions(lastWord)    // firing the get suggestions query
       .then((result) => {
         setSuggestions(result);
-        setSelectedSuggestion(0); 
+        setSelectedSuggestion(0);
       })
       .catch((e) => {
         setError(errorTexts.FETCH_ERROR) // done need to change
+        setSuggestions([]);
+        setSelectedSuggestion(0);
       });
   };
   const debouncedRenderSuggestions = useCallback(debounce((text) => renderSuggestions(text), 500), []);  // done useCallBack
@@ -62,10 +49,15 @@ const SearchBar = () => {
   const handleChange = (e) => {
     if(error.length) setError('');
     const text = e.target.value;
-    setSearchText(text);
-    if(text === '' || text[text.length - 1] === ' ') {
-      setSuggestions([]);     // if empty string or space found at the end
+    if(regex.SEARCH_TEXT_REGEX.test(text)) {
+      setError(errorTexts.INCORRECT_INPUT);
+      e.preventDefault();
       return;
+    }
+    setSearchText(text);
+    if (!text.length || text[text.length - 1] === ' ') {
+      setSelectedSuggestion(0);
+      setSuggestions([]);
     }
     debouncedRenderSuggestions(text);
   };
@@ -93,7 +85,7 @@ const SearchBar = () => {
         setSelectedSuggestion((prev) => (prev + 1) % suggestionsSize);
         break;
       case keys.ENTER: // check
-        if(selectedSuggestion > 0) {
+        if(selectedSuggestion > 0 && searchText.length > 0) {
           handleSuggestionClick(suggestions[selectedSuggestion - 1] + ' ');
         }
         break;
