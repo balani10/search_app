@@ -6,50 +6,49 @@ import keys from '../../constants/keys';
 import errorTexts from '../../constants/errorTexts';
 import regex from '../../constants/regex';
 import debounce from '../../utils/debounce';
-import { findLastSpace } from '../../utils/stringOperations';
+import findLastSpace from '../../utils/stringOperations';
 
 const SearchBar = () => {
-  const [searchText, setSearchText] = useState('');   // actual text in input
-  const [suggestions, setSuggestions] = useState([]);   // array of suggestions
-  const [showSuggestions, setShowSuggestions] = useState(false);  // flag to show/hide suggestions
-  const [selectedSuggestion, setSelectedSuggestion] = useState(0);  // on up/down arrow and space keys
-  const [highlightedText, setHighlightedText] = useState('');   // actual word to be searched
+  const [searchText, setSearchText] = useState(''); // actual text in input
+  const [suggestions, setSuggestions] = useState([]); // array of suggestions
+  const [showSuggestions, setShowSuggestions] = useState(false); // flag to show/hide suggestions
+  const [selectedSuggestion, setSelectedSuggestion] = useState(0); // on up/down arrow and space key
+  const [highlightedText, setHighlightedText] = useState(''); // actual word to be searched
   const [error, setError] = useState('');
   const searchRef = useRef();
 
   const renderSuggestions = (input) => {
-    if(input[input.length - 1] === ' ') {
-      return;
-    }
+    if (input[input.length - 1] === ' ') return;
     const text = input.trim();
     const lastSpace = findLastSpace(text);
     let lastWord = '';
-    if(lastSpace === -1)  // in case no spaces (a single word)
-      lastWord = text;
-    else
-      lastWord = text.slice(lastSpace+1, text.length);
+    // in case no spaces (a single word)
+    if (lastSpace === -1) lastWord = text;
+    else lastWord = text.slice(lastSpace + 1, text.length);
     setHighlightedText(lastWord);
-    if(!lastWord.length) {    // if no text in searchbar
+    if (!lastWord.length) { // if no text in searchbar
       setSuggestions([]);
       return;
     }
-    getSuggestions(lastWord)    // firing the get suggestions query
+    getSuggestions(lastWord) // firing the get suggestions query
       .then((result) => {
         setSuggestions(result);
         setSelectedSuggestion(0);
       })
-      .catch((e) => {
-        setError(errorTexts.FETCH_ERROR) // done need to change
+      .catch(() => {
+        setError(errorTexts.FETCH_ERROR); // done need to change
         setSuggestions([]);
         setSelectedSuggestion(0);
       });
   };
-  const debouncedRenderSuggestions = useCallback(debounce((text) => renderSuggestions(text), 500), []);  // done useCallBack
+  const debouncedRenderSuggestions = useCallback(
+    debounce((text) => renderSuggestions(text), 500), [],
+  ); // done useCallBack
 
   const handleChange = (e) => {
-    if(error.length) setError('');
+    if (error.length) setError('');
     const text = e.target.value;
-    if(regex.SEARCH_TEXT_REGEX.test(text)) {
+    if (regex.SEARCH_TEXT_REGEX.test(text)) {
       setError(errorTexts.INCORRECT_INPUT);
       e.preventDefault();
       return;
@@ -62,7 +61,7 @@ const SearchBar = () => {
     debouncedRenderSuggestions(text);
   };
 
-  const handleSuggestionClick = (suggestion) => {   // add suggestion to input
+  const handleSuggestionClick = (suggestion) => { // add suggestion to input
     setSearchText((text) => {
       const lastSpace = findLastSpace(text);
       const modifiedText = (lastSpace === -1)
@@ -71,6 +70,7 @@ const SearchBar = () => {
       setSuggestions([]);
       return modifiedText;
     });
+    console.log(searchRef);
     searchRef.current.focus();
   };
 
@@ -85,8 +85,8 @@ const SearchBar = () => {
         setSelectedSuggestion((prev) => (prev + 1) % suggestionsSize);
         break;
       case keys.ENTER: // check
-        if(selectedSuggestion > 0 && searchText.length > 0) {
-          handleSuggestionClick(suggestions[selectedSuggestion - 1] + ' ');
+        if (selectedSuggestion > 0 && searchText.length > 0) {
+          handleSuggestionClick(`${suggestions[selectedSuggestion - 1]} `);
         }
         break;
       default:
@@ -96,11 +96,11 @@ const SearchBar = () => {
   // onFocus and onBlur event on input
   const handleFocusIn = () => {
     setShowSuggestions(true);
-  }
+  };
   const handleFocusOut = (e) => {
     if (e.relatedTarget) return;
     setShowSuggestions(false);
-  }
+  };
 
   return (
     <div className="Search-bar">
@@ -110,18 +110,21 @@ const SearchBar = () => {
         value={searchText}
         onChange={handleChange}
         autoComplete="off"
-        autoFocus
         ref={searchRef}
         onKeyDown={handleKeyDown}
         onBlur={handleFocusOut}
         onFocus={handleFocusIn}
         className="Search-input"
       />
-      <ul className='Suggestions'>
-        {error.length && <li className='Suggestion-error'> {error} </li>}
+      <ul className="Suggestions">
+        {error.length && (
+        <li className="Suggestion-error">
+          {error}
+        </li>
+        )}
         {showSuggestions && suggestions.map((value, index) => (
           <ListItem
-            key={index}
+            key={value}
             value={value}
             handleItemClick={handleSuggestionClick}
             isSelected={index + 1 === selectedSuggestion}
